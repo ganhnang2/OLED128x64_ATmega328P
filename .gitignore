@@ -1,0 +1,65 @@
+# ==========================================
+# 1. CÁC FILE BIÊN DỊCH C/C++ & MAKEFILE
+# ==========================================
+*.o
+*.obj
+*.out
+*.a
+*.lib
+build/
+# Bỏ qua các thư mục chứa kết quả build mặc định
+Debug/
+Release/
+
+# ==========================================
+# 2. FILE NHỊ PHÂN & NẠP VI ĐIỀU KHIỂN
+# ==========================================
+# Firmware nạp xuống chip (thường gặp ở cả AVR và STM32)
+*.elf
+*.hex
+*.bin
+
+# File bản đồ bộ nhớ và phân tích kích thước code
+*.map
+*.lst
+*.lss
+*.sym
+
+# File EEPROM (thường gặp khi build cho AVR)
+*.eep
+
+# ==========================================
+# 3. FILE TẠM & CẤU HÌNH CỦA CÁC IDE
+# ==========================================
+# Atmel / Microchip Studio & Visual Studio
+.vs/
+*.atsln
+*.atsuo
+*.cproj.user
+*.suo
+
+# Môi trường Eclipse / STM32CubeIDE
+.metadata/
+.settings/
+*.launch
+*.p2/
+
+# Keil uVision (nếu có sử dụng)
+*.uvguix.*
+*.uvoptx
+*.bak
+
+# ==========================================
+# 4. CÔNG CỤ PHÂN TÍCH / MÔ PHỎNG TOÁN HỌC
+# ==========================================
+# MATLAB (thường dùng để tính toán bộ lọc, xử lý tín hiệu DSP)
+*.asv
+*.slxc
+slprj/
+
+# ==========================================
+# 5. FILE HỆ ĐIỀU HÀNH SINH RA
+# ==========================================
+.DS_Store
+Thumbs.db
+Thumbs.db
