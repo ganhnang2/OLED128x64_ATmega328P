@@ -9,7 +9,7 @@
 #define OLED_128X64_H_
 
 #ifndef	F_CPU
-#define F_CPU	12000000UL
+#define F_CPU	16000000UL
 #endif
 
 #include <avr/io.h>
@@ -18,7 +18,7 @@
 #include "TWI_Master.h"
 #include "global.h"
 
-/****************************MARCO**************************/
+/****************************MARCOS**************************/
 
 /*	Define the parameters for the print function	*/
 // Can modify these settings for your purpose

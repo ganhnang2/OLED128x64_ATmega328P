@@ -10,7 +10,9 @@
 #include <math.h>
 
 /*---------Clock frequency--------*/	
-#define F_CPU				12000000UL													// Clock CPU: 12MHz										
+#ifndef F_CPU
+#define F_CPU				12000000UL			// Clock CPU: 12MHz										
+#endif
 
 #define PRESCALER(value)	(pow(4, value & ((1 << TWPS0) | (1 << TWPS1))))				// Prescaler
 #define F_SCL				400000UL													// Assume frequency SCL = 400kHz

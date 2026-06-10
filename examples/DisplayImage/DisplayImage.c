@@ -2,8 +2,6 @@
  * Test_Display_Image.c
  
  */ 
-
-#define F_CPU		12000000UL			// Clock CPU: 12MHz
 #include <avr/io.h>
 #include <util/delay.h>
 #include <stdio.h>

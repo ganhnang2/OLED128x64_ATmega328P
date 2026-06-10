@@ -110,6 +110,6 @@ Bằng cách bật/tắt các LED của từng điểm ảnh, chúng ta có th�
 
 ## Đóng góp
 
-Source: Nguyễn Hải Nam
+Programmer: Nguyễn Hải Nam
 
 Email: namnguyenhai228@gmail.com
