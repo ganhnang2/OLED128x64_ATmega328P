@@ -1,114 +1,105 @@
-# Thư viện SSD1306 128x64 OLED
+# SSD1306 128x64 OLED Library
 
-## Tổng quan về SSD1306 128x64 OLED
+## Overview of SSD1306 128x64 OLED
 
-- OLED (Organic Light Emitting Diode) phát sáng khi có dòng điện chạy qua. Màn hình OLED hoạt động không cần đèn nền (backlight), vì vậy
-có thể hiện thị màu đen rất sâu. Nó có kích thước nhỏ gọn và trọng lượng nhẹ hơn so với màn hình tinh thể lỏng (LCD).
-- Màn hình OLED 128x64 là loại hiển thị đồ họa dạng ma trận điểm đơn giản. Nó có 128 cột và 64 hàng, tạo thành tổng cộng 128 × 64 = 8192 điểm ảnh (pixel). 
-Bằng cách bật/tắt các LED của từng điểm ảnh, chúng ta có thể hiển thị hình ảnh đồ họa với bất kỳ hình dạng nào.
-- Những loại giao tiếp cho OLED có thể kể tới như là I2C, SPI, ... Và trong bài này thì tôi sử dụng OLED dùng giao thức I2C để truyền thông
+- OLED (Organic Light Emitting Diode) emits light when an electric current passes through it. OLED screens operate without a backlight, so they can display very deep blacks. They are compact in size and lighter than liquid crystal displays (LCDs).
+- The 128x64 OLED screen is a simple dot matrix graphic display. It has 128 columns and 64 rows, making a total of 128 × 64 = 8192 pixels. By turning the LEDs of each pixel on or off, we can display graphic images of any shape.
+- Communication interfaces for OLED can include I2C, SPI, etc. In this project, I use an OLED that uses the I2C protocol for communication.
 
-## Thông số của SSD1306 128x64 OLED
+## SSD1306 128x64 OLED Specifications
 
-- Loại màn hình: OLED (Organic Light Emitting Diode)
-- Kích thước màn hình: 128x64 pixels
-- Driver điều khiển: SSD1306
-- Màu sắc màn hình: Monochrome (White), Yellow, and Blue
-- Điện áp hoạt động: 3.3V to 5V
-- Giao tiếp: I2C
-- Dòng điện hoạt động: ~20mA
+- Display Type: OLED (Organic Light Emitting Diode)
+- Screen Size: 128x64 pixels
+- Controller Driver: SSD1306
+- Screen Color: Monochrome (White), Yellow, and Blue
+- Operating Voltage: 3.3V to 5V
+- Interface: I2C
+- Operating Current: ~20mA
 
-## Sơ đồ chân màn hình OLED (Giao tiếp I2C)
+## OLED Screen Pinout (I2C Interface)
 
-- SDA: Truyền dữ liệu giữa master và slave
-- SCL: Tạo ra xung clock đến slave. Chỉ Master mới có thể điều khiển đường SCL
-- VCC: Nguồn cấp cho màn hình được yêu cầu là 3.3V. Nếu lớn hơn 3.3V, có thể gây hỏng màn hình
-- GND
+- SDA: Data transfer between master and slave.
+- SCL: Generates the clock pulse to the slave. Only the Master can control the SCL line.
+- VCC: Power supply for the screen, required to be 3.3V - 5V.
+- GND: Ground.
 
-**Địa chỉ I2C của màn hình OLED**
-| Bit|	7	| 	6	|	5	|	4	|	3	|	2	|	1	|	0	|
-|:---|:---|:---|:---|:---|:---|:---|:---|:---|
-| 	| 0	| 1	| 1 | 1 | 1 | 0 | SA0 bit | R/W bit |
+**I2C Address of OLED Screen**
+| Bit | 7 | 6 | 5 | 4 | 3 | 2 | 1       | 0       |
+|:----|:-:|:-:|:-:|:-:|:-:|:-:|:-------:|:-------:|
+|     | 0 | 1 | 1 | 1 | 1 | 0 | SA0 bit | R/W bit |
 
-- SA0 bit: Để xác định địa chỉ của Slave
+- SA0 bit: Used to determine the Slave address
 	+ SA0 = 0 -> address = 0b00111100 = 0x3C
 	+ SA0 = 1 -> address = 0b00111101 = 0x3D
-- R/W (Read/Write) bit: Xác định chế độ hoạt động của Master, trong đó: 1 = Read, 0 = Write
+- R/W (Read/Write) bit: Determines the operation mode of the Master, where: 1 = Read, 0 = Write
 
+## OLED Screen Structure
 
-## Cấu trúc màn hình OLED
-
-* Màn hình OLED được ánh xạ với GDDRAM của SSD1306
-
-* GDDRAM (Graphics Display Data RAM) là một loại RAM tĩnh dạng ánh xạ bit (bit-mapped static RAM). Nó lưu trữ mẫu bit (bit pattern) sẽ được hiển thị trên màn hình.
-	* Kích thước của GDDRAM là 128x64 bits và chia thành 8 pages (PAGE0 ... PAGE7)
-	* Khi một byte dữ liệu được ghi vào GDDRAM, tất cả các hàng pixels của cột hiện tại trong một PAGE cụ thể sẽ được lấp đầy. Với data bit D0 nằm ở top row, D7 nẳm ở bottom row
+* The OLED screen is mapped to the GDDRAM of the SSD1306.
+* GDDRAM (Graphics Display Data RAM) is a type of bit-mapped static RAM. It stores the bit pattern that will be displayed on the screen.
+	* The size of GDDRAM is 128x64 bits and is divided into 8 pages (PAGE0 ... PAGE7).
+	* When a byte of data is written to GDDRAM, all pixel rows of the current column in a specific PAGE are filled. With data bit D0 located at the top row, D7 located at the bottom row.
 	
-## Thuật toán cho việc in dữ liệu ra màn hình
+## Algorithm for Printing Data to the Screen
 
-1. Step 1: Thực hiện tạo ra một mảng bufferRAM[] gồm 1024 phần tử (Bản sao màn hình OLED 128x64). Cứ mỗi 128 phần tử trong mảng thì đại diện cho 1 PAGE.
-2. Step 2: Clear buffer trước khi vẽ.
-3. Step 3: Vẽ pixel vào buffer thay vì gửi I2C. Thay vì gửi pixel lên OLED ngay, ta làm như sau:
-	- Với input (x, y) trong đó: x thuộc [0, 63] và y thuộc [0, 127].
-	- Tính toán Page chứa pixel: page = x / 8.
-	- Thứ tự bit trong một Byte (của một cột trong một PAGE): bit = y % 8.
-	- Ta xác định chỉ số bufferRAM[] ứng với vị trí (x, y): index = (page * 128) + x.
-	- Thực hiện vẽ một pixel lên vị trí (x, y): bufferRAM[index] |= (1 << bit). 
-	-> Như đã nói, index bản chất đại diện cho 8-bit dữ liệu - 8 pixel trong một cột của một PAGE xác định.
-4. Step 4: Vẽ ký tự tại vị trí (x, y) vào buffer. Với mỗi ký tự 5x7 cần 5 cột và 7 hàng.
-	- Với từng cột, ta lấy dữ liệu (data) 8-bit của một cột.
-	- Xét từng hàng (pixel) của cột bằng cách xét các bit trong data, nếu hàng đó sáng thì ta thực hiện vẽ pixel.
-5. Step 5: Vẽ chuỗi string vào buffer. 
-6. Step 6: Cập nhật buffer vào OLED.
+1. Step 1: Create a `bufferRAM[]` array consisting of 1024 elements (A replica of the 128x64 OLED screen). Every 128 elements in the array represent 1 PAGE.
+2. Step 2: Clear the buffer before drawing.
+3. Step 3: Draw pixels into the buffer instead of sending I2C immediately. Instead of sending pixels to the OLED right away, we do the following:
+	- With input (x, y) where: x belongs to [0, 63] and y belongs to [0, 127].
+	- Calculate the Page containing the pixel: `page = x / 8`.
+	- Bit order in a Byte (of a column in a PAGE): `bit = y % 8`.
+	- Determine the `bufferRAM[]` index corresponding to position (x, y): `index = (page * 128) + x`.
+	- Draw a pixel at position (x, y): `bufferRAM[index] |= (1 << bit)`.
+	-> As mentioned, the index essentially represents 8-bit data - 8 pixels in a column of a specific PAGE.
+4. Step 4: Draw a character at position (x, y) into the buffer. Each 5x7 character requires 5 columns and 7 rows.
+	- For each column, we take the 8-bit data of a column.
+	- Examine each row (pixel) of the column by checking the bits in the data. If that row is active (high), we draw the pixel.
+5. Step 5: Draw a string into the buffer.
+6. Step 6: Update the buffer to the OLED.
 
-## Lập trình SSD1306 128x64 OLED với AVR ATmega328P
+## Programming SSD1306 128x64 OLED with AVR ATmega328P
 
-* Trong phần này, tôi đã triển khai 3 nhóm lệnh:
-	* Nhóm lệnh cơ bản (Fundamental Function)
-	* Nhóm lệnh in lên màn hình (Display Function)
-	* Nhóm lệnh cuộn màn hình (Scroll Function)
+* In this section, I have implemented 3 groups of functions:
+	* Fundamental Functions
+	* Display Functions
+	* Scroll Functions
 
-**NOTE: Những lệnh sau chỉ áp dụng cho OLED 128x64 và chế độ Page Adressing Mode**
+**NOTE: The following functions only apply to the 128x64 OLED and Page Addressing Mode.**
 
-### Lệnh cơ bản
+### Fundamental Functions
 
-```diff
-- OLED_Init(): Lệnh khởi tạo SSD1306 OLED128x64
-- OLED_Set_Cursor(uint8_t page, uint8_t col): Di chuyển con trỏ đến một vị trí xác định với 2 tham số page - PAGE0..7, col - column 0...127
-- OLED_Set_Brightness(uint16_t brightness): Điều chỉnh độ sáng của OLED
-- OLED_Display_Mode(uint8_t mode): Lựa chọn chế độ in trên màn hình OLED với 2 chế độ là 0: TOP xuống BOTTOM, 1: BOTTOM lên TOP
-- OLED_Sleep(): Đưa OLED vào chế độ Sleep nhưng mà dữ liệu GDRAM vẫn không bị biến mất
-- OLED_Clear_Display(): Xóa toàn bộ nội dung trong GDRAM
-- OLED_Draw_Bit_Map(const uint8_t* image): Lệnh này nhận vào một mảng ma trận các pixel rồi in lên OLED
-```
+- `OLED_Init()`: Initialization command for SSD1306 OLED128x64.
+- `OLED_Set_Cursor(uint8_t page, uint8_t col)`: Moves the cursor to a specific position with 2 parameters: page - PAGE0..7, col - column 0...127.
+- `OLED_Set_Brightness(uint16_t brightness)`: Adjusts the brightness of the OLED.
+- `OLED_Display_Mode(uint8_t mode)`: Selects the display mode on the OLED screen with 2 modes: 0 (TOP to BOTTOM), 1 (BOTTOM to TOP).
+- `OLED_Sleep()`: Puts the OLED into Sleep mode, but the GDRAM data is not lost.
+- `OLED_Clear_Display()`: Clears all content in GDRAM.
+- `OLED_Draw_Bit_Map(const uint8_t* image)`: This command takes a matrix array of pixels and prints them to the OLED.
 
-**NOTE:** TOP ở đây chính là chữ đánh dấu các chân cắm (VCC, GND, SCK, SDA)
+**NOTE:** TOP here refers to the text marking the pins (VCC, GND, SCK, SDA).
 
-### Lệnh in lên màn hình
-```diff
-- OLED_Print_Character(char ch, uint8_t x, uint8_t y): Helper của hàm OLED_Print_String()
-- OLED_Print_String(const char* str, uint8_t x, uint8_t y): Hàm này đẩy chuỗi ký tự cần in vào mảng bufferRAM[]
-- OLED_Update_Display(): Thực hiện đẩy bufferRAM[] vào màn hình GDRAM của OLED bằng cách ánh xạ từng ô nhớ của bufferRAM sang pixel
-```
+### Display Functions
+
+- `OLED_Print_Character(char ch, uint8_t x, uint8_t y)`: Helper for the `OLED_Print_String()` function.
+- `OLED_Print_String(const char* str, uint8_t x, uint8_t y)`: This function pushes the character string to be printed into the `bufferRAM[]` array.
+- `OLED_Update_Display()`: Pushes the `bufferRAM[]` to the GDRAM screen of the OLED by mapping each memory cell of `bufferRAM` to a pixel.
 
 **NOTE:** 
-- Với x (Cột) thuộc khoảng [0, 127] và y (Hàng) thuộc [0, 63]
-- bufferRAM[]: Mảng buffer được sử dụng để lưu trữ các byte dữ liệu của (page, cột) cụ thể
+- With x (Column) in the range [0, 127] and y (Row) in the range [0, 63].
+- `bufferRAM[]`: Buffer array used to store the data bytes of a specific (page, column).
 
-### Lệnh cuộn màn hình
+### Scroll Functions
 
 **NOTE**:
-1. Tất cả các lệnh cuộn ở đây đều cố định khoảng thời gian giữa 2 lần cuộn là 5 frames và mặc định là sẽ thực hiện cuộn sang phía phải.
-2. Cuộn dọc (scroll vertical) ở trong SSD1306 OLED 128x64 là không thể thực hiện được.
+1. All scroll functions here have a fixed interval of 5 frames between two scrolls, and the default scroll direction is to the right.
+2. Vertical scrolling is not possible in the SSD1306 OLED 128x64.
 
-```diff
-- OLED_Horizontal_Scroll(uint8_t startPage, uint8_t endPage): Các page thuộc khoảng [startPage, endPage] sẽ được cuộn ngang về phía bên phải
-- OLED_Scroll_Area(uint8_t fixedRows, uint8_t scrollingRows): Hàm này mục đích nhiệm vụ là thực hiện cuộn những hàng được phép cuộn và cố định những hàng được chỉ định
-	- Example: fixedRows = 3, scrollingRows = 6 -> Hàng 0 - 3 được cố định, hàng 4 - 9 được phép cuộn và hàng 10 - 63 cố định
-- OLED_Vertical_And_Horizontal_Scroll(uint8_t startPage, uint8_t endPage, uint8_t verticalOffset): Lệnh này thực hiện đồng thời cuộn ngang và  dịch theo phương dọc hình ảnh, trong đó: verticalOffset là độ dịch của trục dọc mỗi lần cuộn ngang
-```
+- `OLED_Horizontal_Scroll(uint8_t startPage, uint8_t endPage)`: Pages in the range [startPage, endPage] will be scrolled horizontally to the right.
+- `OLED_Scroll_Area(uint8_t fixedRows, uint8_t scrollingRows)`: The purpose of this function is to scroll allowed rows and fix specified rows.
+	- Example: fixedRows = 3, scrollingRows = 6 -> Rows 0 - 3 are fixed, rows 4 - 9 are allowed to scroll, and rows 10 - 63 are fixed.
+- `OLED_Vertical_And_Horizontal_Scroll(uint8_t startPage, uint8_t endPage, uint8_t verticalOffset)`: This command performs simultaneous horizontal scrolling and vertical shifting of the image, where verticalOffset is the vertical shift amount per horizontal scroll.
 
-## Đóng góp
+## Contribution
 
 Programmer: Nguyễn Hải Nam
 
